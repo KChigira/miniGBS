@@ -53,7 +53,7 @@ cd $(dirname $0)
 
 
 #Make reference genome file of the target resions.
-perl make_samtools_data.pl ${CURRENT}/${VCF} \
+perl make_samtools_data.pl ${VCF} \
                            ${CURRENT}/${NAME}_list_samtools.txt \
                            ${MARGIN}
 if test $? -ne 0 ; then
@@ -76,9 +76,10 @@ echo 'Extracting sequence from refernce has done.'
 
 #Prepare for haplotype calling
 mkdir ${CURRENT}/vcf
-perl make_template_vcf.pl ${CURRENT}/${VCF} \
+perl make_template_vcf.pl ${VCF} \
                           ${CURRENT}/vcf/${NAME}_template.vcf \
                           150
+samtools faidx ${CURRENT}/fasta/${NAME}_reference.fasta
 picard CreateSequenceDictionary \
        R=${CURRENT}/fasta/${NAME}_reference.fasta \
        O=${CURRENT}/fasta/${NAME}_reference.dict
@@ -133,4 +134,17 @@ do
          -O ${CURRENT}/vcf/${line}_raw_variants.vcf \
          --alleles ${CURRENT}/vcf/${NAME}_template.vcf
 
-done < ${CURRENT}/${SN}
+  perl select_only_target.pl ${CURRENT}/vcf/${line}_raw_variants.vcf \
+                             ${CURRENT}/vcf/${NAME}_template.vcf \
+                             ${CURRENT}/vcf/${line}_select_variants.vcf
+
+  gatk IndexFeatureFile \
+       -I ${CURRENT}/vcf/${line}_select_variants.vcf
+
+done < ${SN}
+
+perl merge_genotypes.pl ${CURRENT}/vcf \
+                        ${SN} \
+                        ${CURRENT}/vcf/${NAME}_template.vcf \
+                        ${CURRENT}/${line}_genotypes.vcf
+                        
