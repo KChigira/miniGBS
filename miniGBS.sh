@@ -146,5 +146,5 @@ done < ${SN}
 perl merge_genotypes.pl ${CURRENT}/vcf \
                         ${SN} \
                         ${CURRENT}/vcf/${NAME}_template.vcf \
-                        ${CURRENT}/${line}_genotypes.vcf
+                        ${CURRENT}/${NAME}_genotypes.vcf
                         
